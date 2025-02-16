@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيانات الطفل</title>
+    <style>
+        /* إعدادات الصفحة العامة */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* الحاوية الأساسية */
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            text-align: right;
+            direction: rtl;
+        }
+
+        /* العنوان الرئيسي */
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* تنسيق البيانات */
+        .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        /* النصوص العربية */
+        .info strong {
+            color: #3498db;
+        }
+
+        /* البيانات الإنجليزية */
+        .info span {
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>بيانات الطفل</h2>
+        <div class="info"><strong>الاسم:</strong> <span>{{ child.name }}</span></div>
+        <div class="info"><strong>العمر:</strong> <span>{{ child.age }}</span></div>
+        <div class="info"><strong>رقم المستخدم:</strong> <span>{{ user.phone_number }}</span></div>
+        <div class="info"><strong>المعلومات الطبية:</strong> <span>{{ child.medical_info }}</span></div>
+    </div>
+</body>
+</html>
