@@ -1,0 +1,10 @@
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[env]
+  PYTHON_VERSION = "3.10"
+  PIP_NO_CACHE_DIR = "true"
+  PIP_DISABLE_PIP_VERSION_CHECK = "true"
+
+[deploy]
+  command = "gunicorn API.wsgi:application --bind 0.0.0.0:8000"
