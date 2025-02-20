@@ -7,4 +7,4 @@
   PIP_DISABLE_PIP_VERSION_CHECK = "true"
 
 [deploy]
-  command = "gunicorn API.wsgi:application --bind 0.0.0.0:8000"
+  command = "gunicorn project.wsgi:application --bind 0.0.0.0:8000"
