@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bracelet Safety System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to right, #2a2a72, #009ffd);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* النص الكبير في الخلفية */
+        .background-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        /* الأزرار في أعلى اليمين */
+        .top-right-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            margin: 5px;
+            font-size: 18px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-signup {
+            background: #f3808b;
+        }
+
+        .btn-login {
+            background: #00c9a7;
+        }
+
+        .btn:hover {
+            transform: scale(1.08);
+            opacity: 0.85;
+        }
+
+        /* المحتوى في الوسط */
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 60%;
+            max-width: 700px;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-text">Bracelet Safety System</div>
+
+    <div class="top-right-buttons">
+        <a href="sign-up/" class="btn btn-signup">Sign Up</a>
+        <a href="login/" class="btn btn-login">Login</a>
+    </div>
+
+    <div class="container">
+        <h1>Bracelet Safety System</h1>
+        <p>Ensure your child's safety with real-time tracking.</p>
+    </div>
+
+</body>
+</html>

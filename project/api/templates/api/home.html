@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Bracelet Safety System</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        .notification-alert {
+             position: fixed;
+             top: 40px;
+             right: 40px;
+             background-color: #ff4b5c;
+             color: white;
+             padding: 15px 20px;
+             border-radius: 6px;
+             font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease-in-out;
+       }
+       .shake-animation {
+            animation: shake 0.5s ease-in-out infinite;
+       }
+       @keyframes shake {
+          0% { transform: translateX(0); }
+         25% { transform: translateX(-5px); }
+         50% { transform: translateX(5px); }
+         75% { transform: translateX(-5px); }
+        100% { transform: translateX(0); }
+       }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        #map {
+            height: 400px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+        .info-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 18px;
+        }
+        .icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .icons a {
+            font-size: 30px;
+            color: white;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+            position: relative;
+            margin: 0 15px;
+        }
+        .icons a:hover {
+            transform: scale(1.2);
+        }
+        .notification-badge {
+           background-color:#ff4b5c;
+           color: white;
+           font-size: 14px;
+           font-weight: bold;
+           border-radius: 50%;
+           padding: 4px 8px;
+           position: absolute;
+           top: 10px;
+           right: 10px;
+           display: none;
+        }
+        #requestLocation {
+            background-color: #ff4b5c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+       }
+
+       #requestLocation:hover {
+             background-color: darkred;
+       }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Bracelet Safety System</h2>
+        <div id="notification-alert" class="notification-alert" style="display: none;"></div>
+
+        <div id="map"></div>
+        
+        <button id="requestLocation">Request Location</button>
+        
+        <div class="info-box">
+            <h3>Recent Places</h3>
+            <p id="recent-place">No location received yet.</p>
+        </div>
+        
+        <div class="icons">
+            <a href="#" id="profile-link">👩‍🎓</a>
+            <a href="#" id="notification-icon">
+                🔔<span class="notification-badge" id="notification-count">0</span>
+            </a>
+            <a href="#" id="battery-status">🔋 <span id="battery-percentage">--%</span></a>
+        </div>
+    </div>
+    
+    <script>
+        // قراءة user_id من localStorage
+        const userId = localStorage.getItem("user_id");
+
+        // التأكد من وجود user_id
+        if (!userId) {
+            alert("User ID is missing. Please log in again.");
+            window.location.href = "http://127.0.0.1:8000/login/";
+        }
+
+        // تحديث رابط البروفايل
+        document.getElementById("profile-link").href = `http://127.0.0.1:8000/profileuser/?id=${userId}`;
+        document.getElementById("notification-icon").href = `http://127.0.0.1:8000/notification/?id=${userId}`;
+
+        // إعداد الخريطة
+        var map = L.map('map').setView([30.0444, 31.2357], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        var marker;
+
+        // دالة لجلب آخر موقع محفوظ وعرضه
+        function fetchLastLocation() {
+    const userId = localStorage.getItem("user_id"); // قراءة user_id من localStorage
+
+    if (!userId) {
+        alert("User ID is missing. Please log in again.");
+        window.location.href = "http://127.0.0.1:8000/login/";
+        return;
+    }
+
+    fetch(`http://127.0.0.1:8000/get-last-location/?user_id=${userId}`) // إرسال user_id كـ query parameter
+        .then(response => {
+            if (!response.ok) throw new Error(`خطأ في الشبكة: ${response.status}`);
+            const contentType = response.headers.get('content-type');
+            if (!contentType?.includes('application/json')) {
+                throw new Error('تنسيق الاستجابة غير صالح');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                const { latitude, longitude } = data.data;
+
+                // تحديث الخريطة
+                if (marker) map.removeLayer(marker);
+                marker = L.marker([latitude, longitude]).addTo(map);
+                map.setView([latitude, longitude], 15);
+
+                // جلب اسم المكان باستخدام Nominatim
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                    .then(response => response.json())
+                    .then(locationData => {
+                        const placeName = locationData.display_name || "اسم المكان غير متاح";
+
+                        // تحديث واجهة المستخدم
+                        document.getElementById('recent-place').innerHTML = `
+                            <strong>الإحداثيات:</strong><br>
+                            خط العرض: ${latitude.toFixed(4)}<br>
+                            خط الطول: ${longitude.toFixed(4)}<br>
+                            <strong>اسم المكان:</strong><br>
+                            ${placeName}<br>
+                            <a href="https://maps.google.com/?q=${latitude},${longitude}" 
+                            target="_blank" 
+                            style="color: #4CAF50; text-decoration: underline;">
+                                عرض على خرائط جوجل
+                            </a>
+                        `;
+                    })
+                    .catch(error => {
+                        console.error('حدث خطأ أثناء جلب اسم المكان:', error);
+                        document.getElementById('recent-place').innerHTML = `
+                            <strong>الإحداثيات:</strong><br>
+                            خط العرض: ${latitude.toFixed(4)}<br>
+                            خط الطول: ${longitude.toFixed(4)}<br>
+                            <strong>اسم المكان:</strong><br>
+                            غير متاح<br>
+                            <a href="https://maps.google.com/?q=${latitude},${longitude}" 
+                            target="_blank" 
+                            style="color: #4CAF50; text-decoration: underline;">
+                                عرض على خرائط جوجل
+                            </a>
+                        `;
+                    });
+            } else {
+                alert(`خطأ: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error('حدث خطأ:', error);
+            alert(`فشل في جلب الموقع: ${error.message}`);
+        });
+}
+
+        // تحديث حدث تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", () => {
+            // تحميل أولي للموقع
+            fetchLastLocation().catch(error => {
+                console.error('خطأ التحميل الأولي:', error);
+                document.getElementById('recent-place').innerHTML = 
+                    'لا توجد بيانات موقع متاحة';
+            });
+            
+            // ... باقي الإعدادات
+        });
+
+
+
+        // تحديث حالة البطارية
+        function fetchBatteryStatus() {
+            const userId = localStorage.getItem("user_id");
+
+            if (!userId) {
+                console.error("User ID is missing.");
+                return;
+            }
+
+            console.log("User ID from localStorage:", userId); // عرض ID في وحدة التحكم
+
+            fetch(`http://127.0.0.1:8000/get-battery-status/${userId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        document.getElementById("battery-percentage").textContent = data.battery_level + "%";
+                    } else {
+                        console.error("Error:", data.message);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+
+        // تشغيل الدالة عند تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchBatteryStatus();
+            setInterval(fetchBatteryStatus, 10000); // تحديث كل 10 ثوانٍ
+        });
+
+        function fetchUnreadNotifications() {
+            fetch(`http://127.0.0.1:8000/unread_count/?id=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let count = data.unread_count;
+                    let notificationBadge = document.getElementById("notification-count");
+                    
+                    if (count > 0) {
+                        notificationBadge.textContent = count;
+                        notificationBadge.style.display = "inline-block";
+                    } else {
+                        notificationBadge.style.display = "none";
+                    }
+                })
+                .catch(error => console.error('Error fetching notifications:', error));
+        }
+        
+
+
+        // تحديث الإشعارات
+        async function checkNewNotifications() {
+              try {
+                  const userId = localStorage.getItem("user_id");
+                  if (!userId) return;
+
+                  const response = await fetch(`http://127.0.0.1:8000/get_notifications/?id=${userId}`);
+                  const data = await response.json();
+        
+                  if (data.notifications.length > 0) {
+                    const unreadNotifications = data.notifications.filter(n => !n.is_read);
+                    if (unreadNotifications.length > 0) {
+                      showNotificationAlert(unreadNotifications.length);
+                   }
+                 }
+              } catch (error) {
+                console.error("Error checking notifications:", error);
+              }
+        }
+        function getCSRFToken() {
+            return document.cookie.split("; ").find(row => row.startsWith("csrftoken="))?.split("=")[1];
+        }
+
+
+        // إعداد الأحداث عند تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchUnreadNotifications();
+            fetchLastLocation(); // تحميل آخر موقع عند البدء
+            fetchBatteryStatus();
+            checkForNewNotifications();
+            setInterval(fetchBatteryStatus, 10000);
+            setInterval(checkForNewNotifications, 10000);
+        });
+        setInterval(checkNewNotifications, 5000);
+        function showNotificationAlert(count) {
+               const alertBox = document.getElementById("notification-alert");
+               alertBox.innerHTML = `🔔 لديك ${count} إشعار جديد!`;
+               alertBox.style.display = "block";
+               alertBox.classList.add("shake-animation");
+
+               setTimeout(() => {
+                       alertBox.classList.remove("shake-animation");
+               }, 5000);
+        }
+        
+        setInterval(fetchUnreadNotifications, 10000);
+
+        // ربط الزر بالدالة
+        document.getElementById("requestLocation").addEventListener("click", fetchLastLocation);
+        
+        document.getElementById("requestLocation").addEventListener("click", fetchLocation);
+        // إخفاء الإشعارات عند النقر
+        document.getElementById("notification-icon").addEventListener("click", function() {
+            document.getElementById("notification-count").style.display = "none";
+        });
+    </script>
+</body>
+</html>

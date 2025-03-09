@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Bracelet Safety System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to right, #2a2a72, #009ffd);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #f1f1f1;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            appearance: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 18px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            background: #ff4b5c;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            opacity: 0.85;
+        }
+
+        .login-link {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #f1f1f1;
+            text-decoration: none;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+            color: #fff;
+        }
+
+        #error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        legend {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f1f1f1;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+            <fieldset>
+                <legend>Personal Information</legend>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name">
+                </div>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age">
+                </div>
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Contact Information</legend>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone_number">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Account Information</legend>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm_password" required>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Medical Information</legend>
+                <div class="form-group">
+                    <label for="medical-info">Medical Information</label>
+                    <input type="text" id="medical-info" name="medical_info">
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn" id="submit-button">Sign Up</button>
+        </form>
+
+        <div id="error-message"></div>
+        <a href="http://127.0.0.1:8000/login/" class="login-link">Already have an account? Log in</a>
+    </div>
+
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // منع إعادة تحميل الصفحة عند الضغط على زر التسجيل
+
+            // استخراج البيانات من النموذج
+            const formData = {
+                name: document.getElementById('name').value || null,
+                phone_number: document.getElementById('phone').value || null,
+                gender: document.getElementById('gender').value || null,
+                age: document.getElementById('age').value ? parseInt(document.getElementById('age').value) : null,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                confirm_password: document.getElementById('confirm-password').value,
+                medical_info: document.getElementById('medical-info').value || null
+            };
+
+            // تأكد أن كلمة المرور والتأكيد متطابقان
+            if (formData.password !== formData.confirm_password) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            // إرسال البيانات إلى API باستخدام Fetch
+            fetch('http://127.0.0.1:8000/signup/', {  // استبدل هذا الرابط بمسار الـ API الصحيح
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "User created successfully") {
+                    alert("Account created successfully!");
+                    window.location.href = "http://127.0.0.1:8000/login/"; // تحويل المستخدم إلى صفحة تسجيل الدخول
+                } else {
+                    alert("Something went wrong: " + JSON.stringify(data));
+                }
+            })
+            .catch(error => {
+                alert("Error: " + error);
+            });
+        });
+    </script>
+</body>
+</html>

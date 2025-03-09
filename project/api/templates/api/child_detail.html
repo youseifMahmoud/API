@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيانات الطفل</title>
+    <style>
+        /* استايل عام للصفحة */
+        body {
+            font-family: "Tajawal", sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #fff;
+            text-align: center;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* الحاوية الأساسية */
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        /* عنوان الصفحة */
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* كرت بيانات الطفل */
+        .card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+            text-align: right;
+        }
+
+        /* كل سطر بيانات */
+        .info {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* آخر عنصر بدون خط */
+        .info:last-child {
+            border-bottom: none;
+        }
+
+        /* نصوص البيانات */
+        .info span {
+            font-weight: bold;
+        }
+
+        /* تحميل خط عربي */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>بيانات الطفل</h1>
+        <div class="card">
+            <div class="info"><span>👤 الاسم:</span> <span>{{ child.name }}</span></div>
+            <div class="info"><span>📅 العمر:</span> <span>{{ child.age }}</span></div>
+            <div class="info"><span>⚤ النوع:</span> <span>{{ child.gender|default:"غير محدد" }}</span></div>
+            <div class="info"><span>📞 رقم الهاتف:</span> <span>{{ child.phone_number|default:"غير متوفر" }}</span></div>
+            <div class="info"><span>💉 المعلومات الطبية:</span> <span>{{ child.medical_info|default:"لا توجد معلومات" }}</span></div>
+        </div>
+    </div>
+</body>
+</html>
