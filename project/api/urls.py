@@ -68,8 +68,16 @@ urlpatterns = [
     path('save-longitude/', save_longitude, name='save_longitude'),
     path('get-last-location/', get_last_location, name='get_last_location'),
     path('get-recent-places/', get_recent_places, name='get_recent_places'),
+    
+    path("save-location/<uuid:child_id>/", save_location, name="save_location"),
+    path('save-latitude/<str:child_id>/', save_latitude, name='save_latitude'),
+    path('save-longitude/<str:child_id>/', save_longitude, name='save_longitude'),
+    
     path('save-battery-status/', save_battery_status, name='save_battery_status'),
     path('get-battery-status/<uuid:user_id>/', get_battery_status, name='get_battery_status'),
+
+    path('save-battery-status/<str:child_id>/', save_battery_status, name='save_battery_status'),
+    
     path('get-child/<uuid:child_id>/', get_child_data, name='get-child-data'),
     path('child/<uuid:id>/', ChildDetailAPIView.as_view(), name='child-detail'),
 ]
