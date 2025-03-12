@@ -216,50 +216,39 @@ from .models import Location
 import uuid
 
 @csrf_exempt
-def save_location(request):
+def save_location(request, child_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             user_id = data.get("user_id")
-            child_id = data.get("child_id")
             latitude = data.get("latitude")
             longitude = data.get("longitude")
-            
-            # التحقق من وجود جميع الحقول
-            if not all([user_id, child_id, latitude, longitude]):
+
+            if not all([user_id, latitude, longitude]):
                 return JsonResponse({
                     "status": "error",
                     "message": "Missing required fields"
                 }, status=400)
-            
+
             try:
-                # تحويل child_id إلى UUID
                 child_uuid = uuid.UUID(child_id)
                 child = Child.objects.get(id=child_uuid, user_id=user_id)
             except Child.DoesNotExist:
-                return JsonResponse({
-                    "status": "error",
-                    "message": "Child not found"
-                }, status=404)
-            except ValueError:
-                return JsonResponse({
-                    "status": "error",
-                    "message": "Invalid child_id format"
-                }, status=400)
-            
+                return JsonResponse({"status": "error", "message": "Child not found"}, status=404)
+
             # حفظ البيانات
             location = Location.objects.create(
-                user_id=user_id,  # إضافة user_id
+                user_id=user_id,
                 latitude=latitude,
                 longitude=longitude
             )
             RecentPlace.objects.create(
-                user_id=user_id,  # إضافة user_id
+                user_id=user_id,
                 child=child,
                 latitude=latitude,
                 longitude=longitude
             )
-            
+
             return JsonResponse({
                 "status": "success",
                 "message": "Location saved",
@@ -269,28 +258,16 @@ def save_location(request):
                     "map_link": f"https://maps.google.com/?q={latitude},{longitude}"
                 }
             }, status=201)
-            
-        except json.JSONDecodeError:
-            return JsonResponse({
-                "status": "error",
-                "message": "Invalid JSON"
-            }, status=400)
-        except Exception as e:
-            return JsonResponse({
-                "status": "error",
-                "message": str(e)
-            }, status=500)
-    
-    return JsonResponse({
-        "status": "error",
-        "message": "Method not allowed"
-    }, status=405)
 
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
 
 # دالة لإرجاع الطول فقط
 # وظيفة لحفظ خط العرض
 @csrf_exempt
-def save_latitude(request):
+def save_latitude(request, child_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -299,20 +276,42 @@ def save_latitude(request):
             if latitude is None:
                 return JsonResponse({"status": "error", "message": "Missing latitude"}, status=400)
 
-            location = Location(latitude=latitude, longitude=0)  # حفظ الطول لاحقًا
-            location.save()
+            try:
+                child_uuid = uuid.UUID(child_id)
+                child = get_object_or_404(Child, id=child_uuid)
+            except ValueError:
+                return JsonResponse({"status": "error", "message": "Invalid child_id format"}, status=400)
 
-            return JsonResponse({"status": "success", "message": "Latitude saved", "latitude": latitude}, status=201)
+            # الحصول على user_id من الطفل
+            user_id = child.user_id
+
+            location = Location.objects.order_by('-timestamp').first()
+            if location:
+                location.latitude = latitude
+                location.user_id = user_id  # حفظ user_id تلقائيًا
+                location.save()
+            else:
+                location = Location(latitude=latitude, longitude=0, user_id=user_id)
+                location.save()
+
+            return JsonResponse({
+                "status": "success",
+                "message": "Latitude saved",
+                "latitude": latitude,
+                "user_id": user_id,  # تأكيد حفظ user_id في الرد
+                "child_id": child_id
+            }, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
 
     return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
 
+from django.shortcuts import get_object_or_404
 
 # دالة لإرجاع العرض فقط
 @csrf_exempt
-def save_longitude(request):
+def save_longitude(request, child_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -321,15 +320,31 @@ def save_longitude(request):
             if longitude is None:
                 return JsonResponse({"status": "error", "message": "Missing longitude"}, status=400)
 
+            try:
+                child_uuid = uuid.UUID(child_id)
+                child = get_object_or_404(Child, id=child_uuid)
+            except ValueError:
+                return JsonResponse({"status": "error", "message": "Invalid child_id format"}, status=400)
+
+            # الحصول على user_id من الطفل
+            user_id = child.user_id
+
             location = Location.objects.order_by('-timestamp').first()
             if location:
                 location.longitude = longitude
+                location.user_id = user_id  # حفظ user_id تلقائيًا
                 location.save()
             else:
-                location = Location(latitude=0, longitude=longitude)
+                location = Location(latitude=0, longitude=longitude, user_id=user_id)
                 location.save()
 
-            return JsonResponse({"status": "success", "message": "Longitude saved", "longitude": longitude}, status=201)
+            return JsonResponse({
+                "status": "success",
+                "message": "Longitude saved",
+                "longitude": longitude,
+                "user_id": user_id,  # تأكيد حفظ user_id في الرد
+                "child_id": child_id
+            }, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
@@ -441,22 +456,35 @@ def get_child_data(request, child_id):
 
 # استقبال نسبة البطارية من الهاردوير وتخزينها
 @csrf_exempt
-def save_battery_status(request):
+def save_battery_status(request, child_id):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            user_id = data.get("user_id")
             battery_level = data.get("battery_level")
 
-            if not user_id or battery_level is None:
-                return JsonResponse({"status": "error", "message": "User ID and battery level are required."}, status=400)
+            if battery_level is None:
+                return JsonResponse({"status": "error", "message": "Battery level is required."}, status=400)
 
-            user = User.objects.filter(id=user_id).first()
-            if not user:
-                return JsonResponse({"status": "error", "message": "User not found."}, status=404)
+            # التأكد من أن child_id صحيح
+            try:
+                child_uuid = uuid.UUID(child_id)
+                child = get_object_or_404(Child, id=child_uuid)
+            except ValueError:
+                return JsonResponse({"status": "error", "message": "Invalid child_id format"}, status=400)
 
-            BatteryStatus.objects.create(user=user, battery_level=battery_level)
-            return JsonResponse({"status": "success", "message": "Battery status saved successfully."})
+            # الحصول على user_id المرتبط بالطفل
+            user_id = child.user_id
+
+            # حفظ مستوى البطارية مع user_id
+            BatteryStatus.objects.create(user_id=user_id, battery_level=battery_level)
+
+            return JsonResponse({
+                "status": "success",
+                "message": "Battery status saved successfully.",
+                "battery_level": battery_level,
+                "user_id": user_id,
+                "child_id": child_id
+            }, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({"status": "error", "message": "Invalid JSON format."}, status=400)
